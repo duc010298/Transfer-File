@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" type="image/png" th:href="@{/resources/images/favicon.png}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css"
+        integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Transfer File</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="navbar-collapse collapse">
+            <a class="navbar-brand mr-auto" th:href="@{/}">Transfer File</a>
+            <ul class="navbar-nav">
+                <li><a class="nav-link" th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a class="nav-link" th:href="@{/}"><i class="fas fa-cog"></i> Change password</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Upload File</h1>
+            <hr>
+            <form method="post" enctype="multipart/form-data" id="formInput">
+                <div class="input-group">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="inputGroupFile" multiple>
+                        <label class="custom-file-label" for="inputGroupFile" id="labelFileName">Choose file</label>
+                    </div>
+                </div>
+                <button id="submit-button" class="btn btn-primary float-right" style="margin: 10px 0;"><i
+                        class="fas fa-upload"></i> Upload file</button>
+                <button id="reset-button" disabled class="btn btn-danger float-right" style="margin: 10px;"><i
+                        class="fas fa-undo"></i> Reset</button>
+            </form>
+            <br>
+            <br>
+            <div id="listFile" style="width: 100%"></div>
+            <hr>
+            <h2>List files:</h2>
+            <table class="table table-bordered table-hover table-light">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Size</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>abc</td>
+                        <td>200Mb</td>
+                        <td>
+                            <button type="button" class="btn btn-primary">Download</button>
+                            <button type="button" class="btn btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    const listFileDiv = document.getElementById('listFile');
+
+    let listFile = [];
+    document.getElementById('inputGroupFile').onchange = (event) => {
+        listFileDiv.innerHTML = '';
+        listFile = event.target.files;
+        document.getElementById('labelFileName').innerHTML = (listFile.length === 1)
+            ? (listFile[0].name) : (listFile.length + ' files');
+        if (listFile.length < 10) {
+            listFileDiv.style.display = 'grid';
+            listFileDiv.style.gridColumnGap = '10px';
+            listFileDiv.style.gridTemplateColumns = 'auto';
+        } else {
+            listFileDiv.style.display = 'grid';
+            listFileDiv.style.gridColumnGap = '10px';
+            listFileDiv.style.gridTemplateColumns = 'auto auto';
+        }
+        for (let i = 0; i < listFile.length; i++) {
+            let container = document.createElement('div');
+            container.setAttribute('data', i);
+
+            let fileNameDiv = document.createElement('div');
+            fileNameDiv.innerHTML = (i + 1) + ', ' + listFile[i].name + ' ';
+            let iconSpan = document.createElement('i');
+            iconSpan.classList.add('far');
+            iconSpan.classList.add('fa-check-circle');
+            iconSpan.hidden = true;
+            fileNameDiv.appendChild(iconSpan);
+            container.appendChild(fileNameDiv);
+
+            let progress = document.createElement('div');
+            progress.classList.add('progress');
+            let progressBar = document.createElement('div');
+            progressBar.innerHTML = '0%';
+            progressBar.style.width = '0%';
+            progressBar.classList.add('progress-bar');
+            progressBar.classList.add('progress-bar-striped');
+            progressBar.classList.add('progress-bar-animated');
+            progress.appendChild(progressBar);
+            container.appendChild(progress);
+
+            let brTag = document.createElement('br');
+            container.appendChild(brTag);
+
+            listFileDiv.appendChild(container);
+        }
+    }
+
+    let sendFile = (file, index) => {
+        let formData = new FormData();
+        formData.append('file', file);
+        axios.request({
+            method: "post",
+            url: "/",
+            data: formData,
+            onUploadProgress: (p) => {
+                let progressValue = Math.ceil((p.loaded / p.total) * 100);
+                document.querySelector('div[data="' + index + '"] .progress>div').style.width = progressValue + '%';
+                document.querySelector('div[data="' + index + '"] .progress>div').innerHTML = progressValue + '%';
+            }
+        }).then(data => {
+            let progressValue = 100;
+            document.querySelector('div[data="' + index + '"] i').hidden = false;
+            document.querySelector('div[data="' + index + '"] .progress>div').hidden = true;
+            document.getElementById('submit-button').disabled = false;
+            document.getElementById('reset-button').disabled = false;
+        })
+    }
+
+    document.getElementById('submit-button').onclick = (event) => {
+        event.target.disabled = true;
+        document.getElementById('reset-button').disabled = true;
+        for (let i = 0; i < listFile.length; i++) {
+            sendFile(listFile[i], i);
+        }
+    }
+
+    document.getElementById('reset-button').onclick = (event) => {
+        event.target.disabled = true;
+        document.getElementById('submit-button').disabled = false;
+        document.getElementById('formInput').reset();
+        document.getElementById('labelFileName').innerHTML = 'Choose file';
+        listFileDiv.innerHTML = '';
+    }
+</script>
+
+</html>

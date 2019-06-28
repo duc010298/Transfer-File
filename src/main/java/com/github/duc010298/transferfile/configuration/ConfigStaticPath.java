@@ -1,4 +1,4 @@
-package com.github.duc010298.transferfile.config;
+package com.github.duc010298.transferfile.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;

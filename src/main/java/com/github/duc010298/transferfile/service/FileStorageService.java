@@ -12,14 +12,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.github.duc010298.transferfile.configuration.FileStorageConfig;
+
 @Service
 public class FileStorageService {
 	
 	private final Path fileStorageLocation;
 	
 	@Autowired
-    public FileStorageService() {
-        this.fileStorageLocation = Paths.get(System.getProperty("user.dir") + "\\upload").toAbsolutePath().normalize();
+    public FileStorageService(FileStorageConfig fileStorageConfig) {
+		String storageConfig = fileStorageConfig.getUploadDir();
+		if(storageConfig == null) storageConfig = System.getProperty("user.dir");
+        this.fileStorageLocation = Paths.get(storageConfig).toAbsolutePath().normalize();
 
         try {
             Files.createDirectories(this.fileStorageLocation);

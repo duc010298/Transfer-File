@@ -1,4 +1,4 @@
-package com.github.duc010298.transferfile.config;
+package com.github.duc010298.transferfile.configuration;
 
 import com.github.duc010298.transferfile.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;

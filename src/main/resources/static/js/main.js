@@ -118,6 +118,7 @@ let updateListFile = () => {
                 row.appendChild(col4);
                 let col5 = document.createElement('td');
                 let buttonDownload = document.createElement('button');
+                buttonDownload.setAttribute('name', 'buttonDownload');
                 buttonDownload.setAttribute('data', fileId);
                 buttonDownload.classList.add('btn');
                 buttonDownload.classList.add('btn-primary');
@@ -321,4 +322,8 @@ document.getElementById('deleteAll').onclick = (event) => {
 
 document.getElementById('downloadAll').onclick = (event) => {
     //TODO download as zip
+    let listButton = document.querySelectorAll('button[name="buttonDownload"]');
+    for (let button of listButton) {
+        button.click();
+    }
 }

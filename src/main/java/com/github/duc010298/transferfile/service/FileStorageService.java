@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.github.duc010298.transferfile.configuration.FileStorageConfig;
@@ -32,17 +31,13 @@ public class FileStorageService {
         }
     }
 	
-    public String storeFile(MultipartFile file) {
-        // Normalize file name
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-
+    public String storeFile(MultipartFile file, String userId, String fileName) {
         try {
-            if(fileName.contains("..")) {
-                throw new Exception("Wrong file");
-            }
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+        	Path directoryPath = this.fileStorageLocation.resolve(userId);
+        	Files.createDirectories(directoryPath);
+            Path targetLocation = this.fileStorageLocation.resolve(userId).resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
+            
             return fileName;
         } catch (Exception e) {
             e.printStackTrace();

@@ -14,12 +14,13 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "file")
 public class FileEntity {
 	private UUID fileId;
 	private String fileName;
-	private String fileUrl;
 	private Long fileSize;
 	private Date dateUpload;
 	private AppUserEntity appUserEntity;
@@ -43,15 +44,6 @@ public class FileEntity {
 	}
 	
 	@Basic
-    @Column(name = "file_url")
-	public String getFileUrl() {
-		return fileUrl;
-	}
-	public void setFileUrl(String fileUrl) {
-		this.fileUrl = fileUrl;
-	}
-	
-	@Basic
     @Column(name = "file_size")
 	public Long getFileSize() {
 		return fileSize;
@@ -71,6 +63,7 @@ public class FileEntity {
 	
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="user_id")
+	@JsonIgnore
 	public AppUserEntity getAppUserEntity() {
 		return this.appUserEntity;
 	}

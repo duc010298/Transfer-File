@@ -14,13 +14,25 @@
 </head>
 
 <body>
+    <div class="modal fade" id="notify-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">...</h4>
+                </div>
+                <div class="modal-body">...</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="navbar-collapse collapse">
             <a class="navbar-brand mr-auto" th:href="@{/}">Transfer File</a>
             <ul class="navbar-nav">
                 <li><a class="nav-link" th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                <li><a class="nav-link" th:href="@{/}"><i class="fas fa-cog"></i> Change password</a>
-                </li>
+                <li><a class="nav-link" th:href="@{/}"><i class="fas fa-cog"></i> Change password</a></li>
             </ul>
         </div>
     </nav>
@@ -30,143 +42,34 @@
             <hr>
             <div class="input-group">
                 <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="inputGroupFile" multiple>
-                    <label class="custom-file-label" for="inputGroupFile" id="labelFileName">Choose file</label>
+                    <input type="file" class="custom-file-input" id="inputGroupFile" multiple> <label
+                        class="custom-file-label" for="inputGroupFile" id="labelFileName">Choose file</label>
                 </div>
             </div>
-            <button id="submit-button" class="btn btn-primary float-right" style="margin: 10px 0;"><i
-                    class="fas fa-upload"></i> Upload file</button>
-            <button id="reset-button" disabled class="btn btn-danger float-right" style="margin: 10px;"><i
-                    class="fas fa-undo"></i> Reset</button>
-            <br>
-            <br>
+            <button id="submit-button" class="btn btn-primary float-right" style="margin: 10px 0;">
+                <i class="fas fa-upload"></i> Upload file
+            </button>
+            <button id="reset-button" disabled class="btn btn-danger float-right" style="margin: 10px;">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <br> <br>
             <div id="listFile" style="width: 100%"></div>
             <hr>
             <h2>List files:</h2>
             <table class="table table-bordered table-hover table-light">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Name</th>
                         <th>Size</th>
-                        <th></th>
+                        <th>Date Upload</th>
+                        <th style="width: 130px"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>abc</td>
-                        <td>200Mb</td>
-                        <td>
-                            <button type="button" class="btn btn-primary">Download</button>
-                            <button type="button" class="btn btn-danger">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="table-list-file"></tbody>
             </table>
         </div>
     </div>
 </body>
-<script>
-    const listFileDiv = document.getElementById('listFile');
-
-    let listFile = [];
-    document.getElementById('inputGroupFile').onchange = (event) => {
-        document.getElementById('submit-button').disabled = false;
-        document.getElementById('reset-button').disabled = false;
-        listFileDiv.innerHTML = '';
-        listFile = event.target.files;
-        document.getElementById('labelFileName').innerHTML = (listFile.length === 1)
-            ? (listFile[0].name) : (listFile.length + ' files');
-        if (listFile.length < 10) {
-            listFileDiv.style.display = 'grid';
-            listFileDiv.style.gridColumnGap = '10px';
-            listFileDiv.style.gridTemplateColumns = 'auto';
-        } else {
-            listFileDiv.style.display = 'grid';
-            listFileDiv.style.gridColumnGap = '10px';
-            listFileDiv.style.gridTemplateColumns = 'auto auto';
-        }
-        for (let i = 0; i < listFile.length; i++) {
-            let container = document.createElement('div');
-            container.setAttribute('data', i);
-
-            let fileNameDiv = document.createElement('div');
-            fileNameDiv.innerHTML = (i + 1) + ', ' + listFile[i].name + ' ';
-            let iconSpanDone = document.createElement('i');
-            iconSpanDone.classList.add('far');
-            iconSpanDone.classList.add('fa-check-circle');
-            iconSpanDone.classList.add('done');
-            iconSpanDone.style.color = 'green';
-            iconSpanDone.hidden = true;
-            fileNameDiv.appendChild(iconSpanDone);
-            let iconSpanError = document.createElement('i');
-            iconSpanError.classList.add('fas');
-            iconSpanError.classList.add('fa-exclamation-circle');
-            iconSpanError.classList.add('error');
-            iconSpanError.style.color = 'red';
-            iconSpanError.hidden = true;
-            fileNameDiv.appendChild(iconSpanError);
-            container.appendChild(fileNameDiv);
-
-            let progress = document.createElement('div');
-            progress.classList.add('progress');
-            let progressBar = document.createElement('div');
-            progressBar.innerHTML = '0%';
-            progressBar.style.width = '0%';
-            progressBar.classList.add('progress-bar');
-            progressBar.classList.add('progress-bar-striped');
-            progressBar.classList.add('progress-bar-animated');
-            progress.appendChild(progressBar);
-            container.appendChild(progress);
-
-            let brTag = document.createElement('br');
-            container.appendChild(brTag);
-
-            listFileDiv.appendChild(container);
-        }
-    }
-
-    let sendFile = (file, index) => {
-        let formData = new FormData();
-        formData.append('file', file);
-        axios.request({
-            method: "post",
-            url: "/",
-            data: formData,
-            onUploadProgress: (p) => {
-                let progressValue = Math.ceil((p.loaded / p.total) * 100);
-                document.querySelector('div[data="' + index + '"] .progress>div').style.width = progressValue + '%';
-                document.querySelector('div[data="' + index + '"] .progress>div').innerHTML = progressValue + '%';
-            }
-        }).then(data => {
-            let progressValue = 100;
-            document.querySelector('div[data="' + index + '"] .done').hidden = false;
-            document.querySelector('div[data="' + index + '"] .progress>div').hidden = true;
-            document.getElementById('submit-button').disabled = false;
-            document.getElementById('reset-button').disabled = false;
-        }).catch(error => {
-            document.getElementById('reset-button').disabled = false;
-            document.querySelector('div[data="' + index + '"] .error').hidden = false;
-            document.querySelector('div[data="' + index + '"] .progress>div').hidden = true;
-        });
-    }
-
-    document.getElementById('submit-button').onclick = (event) => {
-        if (listFile.length === 0) return;
-        event.target.disabled = true;
-        document.getElementById('reset-button').disabled = true;
-        for (let i = 0; i < listFile.length; i++) {
-            sendFile(listFile[i], i);
-        }
-    }
-
-    document.getElementById('reset-button').onclick = (event) => {
-        event.target.disabled = true;
-        document.getElementById('submit-button').disabled = false;
-        document.getElementById('inputGroupFile').value = '';
-        listFile = [];
-        document.getElementById('labelFileName').innerHTML = 'Choose file';
-        listFileDiv.innerHTML = '';
-    }
-</script>
-
+<script th:src="@{/resources/js/main.js}"></script>
 </html>

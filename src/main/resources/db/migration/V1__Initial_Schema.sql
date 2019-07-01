@@ -27,7 +27,6 @@ create table if not exists file
 	file_id uuid primary key,
 	user_id bigint not null,
 	file_name varchar(255) not null,
-	file_url text not null,
 	file_size bigint not null,
 	date_upload timestamp not null,
 	constraint file_fk1 foreign key (user_id) references app_user (user_id)

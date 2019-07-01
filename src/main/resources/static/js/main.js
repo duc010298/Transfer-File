@@ -34,8 +34,21 @@ let formatDate = (date) => {
     day = "" + date.getDate(); if (day.length == 1) { day = "0" + day; }
     hour = "" + date.getHours(); if (hour.length == 1) { hour = "0" + hour; }
     minute = "" + date.getMinutes(); if (minute.length == 1) { minute = "0" + minute; }
-    second = "" + date.getSeconds(); if (second.length == 1) { second = "0" + second; }
-    return year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second;
+    return year + "/" + month + "/" + day + " " + hour + ":" + minute;
+}
+
+let setEventClickDownload = (button) => {
+    button.onclick = (event) => {
+        let fileId;
+        if (event.target.tagName === 'I') {
+            let parent = event.target.parentNode;
+            fileId = parent.getAttribute("data");
+        } else {
+            fileId = event.target.getAttribute("data");
+        }
+        let urlDownload = '/download-file/' + fileId;
+        window.open(urlDownload);
+    }
 }
 
 let updateListFile = () => {
@@ -46,6 +59,7 @@ let updateListFile = () => {
         if (data.status === 200) {
             tableListFile.innerHTML = '';
             for (let i = 0; i < data.data.length; i++) {
+                let fileId = data.data[i].fileId;
                 let fileName = data.data[i].fileName;
                 let fileSize = data.data[i].fileSize;
                 let dateUpload = data.data[i].dateUpload;
@@ -80,6 +94,7 @@ let updateListFile = () => {
                 row.appendChild(col4);
                 let col5 = document.createElement('td');
                 let buttonDownload = document.createElement('button');
+                buttonDownload.setAttribute('data', fileId);
                 buttonDownload.classList.add('btn');
                 buttonDownload.classList.add('btn-primary');
                 buttonDownload.style.marginRight = '10px';
@@ -87,8 +102,10 @@ let updateListFile = () => {
                 iconDownload.classList.add('fas');
                 iconDownload.classList.add('fa-download');
                 buttonDownload.appendChild(iconDownload);
+                setEventClickDownload(buttonDownload);
                 col5.appendChild(buttonDownload);
                 let buttonDelete = document.createElement('button');
+                buttonDelete.setAttribute('data', fileId);
                 buttonDelete.classList.add('btn');
                 buttonDelete.classList.add('btn-danger');
                 let iconDelete = document.createElement('i');
@@ -259,4 +276,24 @@ document.getElementById('reset-button').onclick = (event) => {
     listFile = [];
     document.getElementById('labelFileName').innerHTML = 'Choose file';
     listFileDiv.innerHTML = '';
+}
+
+document.getElementById('deleteAll').onclick = (event) => {
+    axios.request({
+        method: "delete",
+        url: "/"
+    }).then(data => {
+        if (data.status === 200) {
+            notify("Information", "Delete all file successfully", false);
+            updateListFile();
+        } else {
+            notify("Error", "Delete all file failed", true);
+        }
+    }).catch(error => {
+        notify("Error", "Delete all file failed", true);
+    });
+}
+
+document.getElementById('downloadAll').onclick = (event) => {
+    
 }

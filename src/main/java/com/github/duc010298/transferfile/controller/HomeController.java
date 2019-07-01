@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +51,7 @@ public class HomeController {
 	public String homePage() {
 		return "index";
 	}
-	
+
 	@GetMapping("/list-file")
 	public @ResponseBody List<FileEntity> getListFile(Principal principal) {
 		String userName = principal.getName();
@@ -81,26 +83,45 @@ public class HomeController {
 		}
 	}
 
-	@GetMapping("/downloadFile/{fileName:.+}")
-	public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
-		// Load file as Resource
-		Resource resource = fileStorageService.loadFileAsResource(fileName);
+	@DeleteMapping
+	public @ResponseBody ResponseEntity<?> deleteAllFile(Principal principal) {
+		String userName = principal.getName();
+		AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
+		List<FileEntity> listFile = fileRepository.findAllByAppUserEntity(appUserEntity);
 
-		// Try to determine file's content type
-		String contentType = null;
+		for (FileEntity file : listFile) {
+			fileStorageService.deleteFile(file.getFileId().toString(), appUserEntity.getUserName());
+			fileRepository.delete(file);
+		}
+		return new ResponseEntity<Object>(HttpStatus.OK);
+	}
+
+	@GetMapping("/download-file/{fileId}")
+	public ResponseEntity<Resource> downloadFile(@PathVariable String fileId, HttpServletRequest request,
+			Principal principal) {
 		try {
-			contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-		} catch (IOException e) {
+			String userName = principal.getName();
+			AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
+
+			Optional<FileEntity> file = fileRepository.findById(UUID.fromString(fileId));
+			String originFileName = file.get().getFileName();
+
+			Resource resource = fileStorageService.loadFileAsResource(appUserEntity.getUserName(), fileId);
+			String contentType = null;
+			try {
+				contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (contentType == null) {
+				contentType = "application/octet-stream";
+			}
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originFileName + "\"")
+					.body(resource);
+		} catch (Exception e) {
 			e.printStackTrace();
+			return new ResponseEntity<Resource>(HttpStatus.NOT_FOUND);
 		}
-
-		// Fallback to the default content type if type could not be determined
-		if (contentType == null) {
-			contentType = "application/octet-stream";
-		}
-
-		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-				.body(resource);
 	}
 }

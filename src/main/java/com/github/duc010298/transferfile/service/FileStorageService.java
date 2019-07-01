@@ -15,49 +15,54 @@ import com.github.duc010298.transferfile.configuration.FileStorageConfig;
 
 @Service
 public class FileStorageService {
-	
-	private final Path fileStorageLocation;
-	
-	@Autowired
-    public FileStorageService(FileStorageConfig fileStorageConfig) {
-		String storageConfig = fileStorageConfig.getUploadDir();
-		if(storageConfig == null) storageConfig = System.getProperty("user.dir");
-        this.fileStorageLocation = Paths.get(storageConfig).toAbsolutePath().normalize();
 
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-	
-    public String storeFile(MultipartFile file, String userId, String fileName) {
-        try {
-        	Path directoryPath = this.fileStorageLocation.resolve(userId);
-        	Files.createDirectories(directoryPath);
-            Path targetLocation = this.fileStorageLocation.resolve(userId).resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            
-            return fileName;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    
-    public Resource loadFileAsResource(String fileName) {
-        try {
-            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-                return resource;
-            } else {
-                throw new Exception("File not found " + fileName);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+	private final Path fileStorageLocation;
+
+	@Autowired
+	public FileStorageService(FileStorageConfig fileStorageConfig) {
+		String storageConfig = fileStorageConfig.getUploadDir();
+		if (storageConfig == null)
+			storageConfig = System.getProperty("user.dir");
+		this.fileStorageLocation = Paths.get(storageConfig).toAbsolutePath().normalize();
+
+		try {
+			Files.createDirectories(this.fileStorageLocation);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String storeFile(MultipartFile file, String userName, String fileName) {
+		try {
+			Path directoryPath = this.fileStorageLocation.resolve(userName);
+			Files.createDirectories(directoryPath);
+			Path targetLocation = this.fileStorageLocation.resolve(userName).resolve(fileName);
+			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+			return fileName;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void deleteFile(String fileName, String userName) {
+		try {
+			Path targetLocation = this.fileStorageLocation.resolve(userName).resolve(fileName);
+			Files.delete(targetLocation);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Resource loadFileAsResource(String userName, String fileName) throws Exception {
+		Path filePath = this.fileStorageLocation.resolve(userName).resolve(fileName).normalize();
+		Resource resource = new UrlResource(filePath.toUri());
+		if (resource.exists()) {
+			return resource;
+		} else {
+			throw new Exception("File not found " + fileName);
+		}
+	}
 
 }

@@ -51,6 +51,30 @@ let setEventClickDownload = (button) => {
     }
 }
 
+let setEventClickDelete = (button) => {
+    button.onclick = (event) => {
+        let fileId;
+        if (event.target.tagName === 'I') {
+            let parent = event.target.parentNode;
+            fileId = parent.getAttribute("data");
+        } else {
+            fileId = event.target.getAttribute("data");
+        }
+        axios.request({
+            method: "delete",
+            url: "/" + fileId
+        }).then(data => {
+            if (data.status === 200) {
+                updateListFile();
+            } else {
+                notify("Error", "Delete file failed", true);
+            }
+        }).catch(error => {
+            notify("Error", "Delete file failed", true);
+        });
+    }
+}
+
 let updateListFile = () => {
     axios.request({
         method: "get",
@@ -105,6 +129,7 @@ let updateListFile = () => {
                 setEventClickDownload(buttonDownload);
                 col5.appendChild(buttonDownload);
                 let buttonDelete = document.createElement('button');
+                setEventClickDelete(buttonDelete);
                 buttonDelete.setAttribute('data', fileId);
                 buttonDelete.classList.add('btn');
                 buttonDelete.classList.add('btn-danger');
@@ -295,5 +320,5 @@ document.getElementById('deleteAll').onclick = (event) => {
 }
 
 document.getElementById('downloadAll').onclick = (event) => {
-    
+    //TODO download as zip
 }

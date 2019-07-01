@@ -96,6 +96,26 @@ public class HomeController {
 		return new ResponseEntity<Object>(HttpStatus.OK);
 	}
 
+	@DeleteMapping("/{fileId}")
+	public @ResponseBody ResponseEntity<?> deleteFile(@PathVariable String fileId, Principal principal) {
+		try {
+			String userName = principal.getName();
+			AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
+			Optional<FileEntity> fileOptional = fileRepository.findById(UUID.fromString(fileId));
+			FileEntity fileEntity = fileOptional.get();
+			if (fileEntity.getAppUserEntity().equals(appUserEntity)) {
+				fileStorageService.deleteFile(fileId, appUserEntity.getUserName());
+				fileRepository.delete(fileEntity);
+				return new ResponseEntity<Object>(HttpStatus.OK);
+			} else {
+				return new ResponseEntity<Object>(HttpStatus.NOT_ACCEPTABLE);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
 	@GetMapping("/download-file/{fileId}")
 	public ResponseEntity<Resource> downloadFile(@PathVariable String fileId, HttpServletRequest request,
 			Principal principal) {

@@ -1,23 +1,37 @@
 package com.github.duc010298.transferfile.service;
 
 import com.github.duc010298.transferfile.configuration.FileStorageConfig;
+import com.github.duc010298.transferfile.entity.FilePathEntity;
+import com.github.duc010298.transferfile.repository.FilePathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class FileStorageService {
     private static String TEMP_FOLDER = "TEMP";
 
     private final Path fileStorageLocation;
+    private FileStorageConfig fileStorageConfig;
+    private FilePathRepository filePathRepository;
 
     @Autowired
-    public FileStorageService(FileStorageConfig fileStorageConfig) {
+    public FileStorageService(FileStorageConfig fileStorageConfig, FilePathRepository filePathRepository) {
+        this.fileStorageConfig = fileStorageConfig;
+        this.filePathRepository = filePathRepository;
+
         String storageConfig = fileStorageConfig.getUploadDir();
         if (storageConfig == null) {
             storageConfig = System.getProperty("user.dir");
@@ -26,6 +40,44 @@ public class FileStorageService {
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    public void joinFile(String fileName, String keyJoin, String userName) {
+        //TODO remove file temp and save file to database
+        UUID fileNameUUID = UUID.randomUUID();
+
+        String[] parts = fileName.split("\\.");
+        StringBuilder temp = new StringBuilder();
+        for (int i = 0; i < parts.length - 2; i++) {
+            temp.append(parts[i]);
+            if (i != parts.length - 3) {
+                temp.append(".");
+            }
+        }
+        String originFileName = temp.toString();
+        Path out = this.fileStorageLocation.resolve(userName).resolve(originFileName);
+//        Path out = this.fileStorageLocation.resolve(userName).resolve(fileNameUUID.toString());
+
+        List<FilePathEntity> listFilePath = filePathRepository.findAllByKeyJoinOrderByFileNameAsc(keyJoin);
+
+        try (FileOutputStream output = new FileOutputStream(out.toFile());
+             FileChannel outChannel = output.getChannel()) {
+            for (FilePathEntity filePathEntity : listFilePath) {
+                Path dir = this.fileStorageLocation.resolve(userName).resolve(TEMP_FOLDER).resolve(keyJoin).resolve(filePathEntity.getFileId().toString());
+                try (FileInputStream input = new FileInputStream(dir.toFile());
+                     FileChannel inChannel = input.getChannel()) {
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    while (inChannel.read(buffer) > 0) {
+                        buffer.flip();
+                        outChannel.write(buffer);
+                        buffer.clear();
+                    }
+                }
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

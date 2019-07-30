@@ -11,4 +11,6 @@ import com.github.duc010298.transferfile.entity.AppUserEntity;
 public interface FilePathRepository extends JpaRepository<FilePathEntity, UUID> {
 
     List<FilePathEntity> findAllByAppUserEntity(AppUserEntity appUserEntity);
+
+    List<FilePathEntity> findAllByKeyJoinOrderByFileNameAsc(String keyJoin);
 }

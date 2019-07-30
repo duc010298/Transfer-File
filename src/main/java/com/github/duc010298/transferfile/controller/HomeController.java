@@ -86,13 +86,14 @@ public class HomeController {
             parts = content.split("_");
             if (parts[0].equals(fileStorageConfig.getPrefix())) {
                 String keyJoin = parts[1];
+                Integer total = Integer.parseInt(parts[2]);
                 String fileName = fileStorageService.storeFileTemp(file, userName, fileNameUUID.toString(), keyJoin);
 
                 if (fileNameUUID.toString().equals(fileName)) {
                     FilePathEntity filePathEntity = new FilePathEntity();
                     filePathEntity.setFileId(fileNameUUID);
                     filePathEntity.setKeyJoin(keyJoin);
-                    filePathEntity.setTotal(Integer.parseInt(parts[2]));
+                    filePathEntity.setTotal(total);
                     filePathEntity.setIndexFile(Integer.parseInt(indexFile));
                     filePathEntity.setFileName(fileNameOrigin);
                     filePathEntity.setFileSize(file.getSize());
@@ -100,7 +101,10 @@ public class HomeController {
                     filePathEntity.setAppUserEntity(appUserEntity);
                     filePathRepository.save(filePathEntity);
 
-                    //TODO call join file
+                    List<FilePathEntity> listFileWithKeyJoin = filePathRepository.findAllByKeyJoinOrderByFileNameAsc(keyJoin);
+                    if (listFileWithKeyJoin.size() == total) {
+                        fileStorageService.joinFile(fileNameOrigin, keyJoin, userName);
+                    }
                     return new ResponseEntity<>(HttpStatus.CREATED);
                 } else {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

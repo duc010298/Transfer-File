@@ -17,7 +17,7 @@ import javax.persistence.TemporalType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "file")
+@Table(name = "file_path")
 public class FilePathEntity {
     private UUID fileId;
     private String keyJoin;

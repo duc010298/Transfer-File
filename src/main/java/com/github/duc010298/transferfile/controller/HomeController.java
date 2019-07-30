@@ -1,5 +1,6 @@
 package com.github.duc010298.transferfile.controller;
 
+import com.github.duc010298.transferfile.configuration.FileStorageConfig;
 import com.github.duc010298.transferfile.entity.AppUserEntity;
 import com.github.duc010298.transferfile.entity.FileEntity;
 import com.github.duc010298.transferfile.entity.FilePathEntity;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,14 +34,17 @@ public class HomeController {
     private FileRepository fileRepository;
     private FilePathRepository filePathRepository;
     private FileStorageService fileStorageService;
+    private FileStorageConfig fileStorageConfig;
 
     @Autowired
     public HomeController(AppUserRepository appUserRepository, FileRepository fileRepository,
-                          FilePathRepository filePathRepository, FileStorageService fileStorageService) {
+                          FilePathRepository filePathRepository, FileStorageService fileStorageService,
+                          FileStorageConfig fileStorageConfig) {
         this.appUserRepository = appUserRepository;
         this.fileRepository = fileRepository;
         this.filePathRepository = filePathRepository;
         this.fileStorageService = fileStorageService;
+        this.fileStorageConfig = fileStorageConfig;
     }
 
     @GetMapping
@@ -57,34 +62,64 @@ public class HomeController {
 
     @GetMapping("/list-file-path")
     public @ResponseBody
-    List<FileEntity> getListFilePath(Principal principal) {
+    List<FilePathEntity> getListFilePath(Principal principal) {
         String userName = principal.getName();
         AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
-        return fileRepository.findAllByAppUserEntity(appUserEntity);
+        return filePathRepository.findAllByAppUserEntity(appUserEntity);
     }
 
     @PostMapping
     public @ResponseBody
     ResponseEntity<?> uploadMultipleFiles(@RequestParam("file") MultipartFile file, Principal principal) {
-//        String userName = principal.getName();
-//        AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
-//
-//        UUID fileNameUUID = UUID.randomUUID();
-//        String fileName = fileStorageService.storeFile(file, appUserEntity.getUserName(), fileNameUUID.toString());
-//
-//        if (fileNameUUID.toString().equals(fileName)) {
-//            FileEntity fileEntity = new FileEntity();
-//            fileEntity.setFileId(fileNameUUID);
-//            fileEntity.setFileName(file.getOriginalFilename());
-//            fileEntity.setFileSize(file.getSize());
-//            fileEntity.setDateUpload(new Date());
-//            fileEntity.setAppUserEntity(appUserEntity);
-//            fileRepository.save(fileEntity);
-//            return new ResponseEntity<Object>(HttpStatus.CREATED);
-//        } else {
-//            return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
-//        }
-        return null;
+        String userName = principal.getName();
+        AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
+
+        UUID fileNameUUID = UUID.randomUUID();
+        String fileNameOrigin = file.getOriginalFilename();
+
+        //pattern: [origin file name].[key prefix server]_[key join]_[total]_[index part]
+        String regexFileName = "^.+\\.[a-zA-Z]{5}\\_[a-zA-Z]{5}\\_[0-9]+\\_[0-9]+$";
+        if (fileNameOrigin != null && fileNameOrigin.matches(regexFileName)) {
+            String[] parts = fileNameOrigin.split("\\.");
+            String content = parts[parts.length - 1];
+            parts = content.split("_");
+            if (parts[0].equals(fileStorageConfig.getPrefix())) {
+                String keyJoin = parts[1];
+                String fileName = fileStorageService.storeFileTemp(file, userName, fileNameUUID.toString(), keyJoin);
+
+                if (fileNameUUID.toString().equals(fileName)) {
+                    FilePathEntity filePathEntity = new FilePathEntity();
+                    filePathEntity.setFileId(fileNameUUID);
+                    filePathEntity.setKeyJoin(keyJoin);
+                    filePathEntity.setTotal(Integer.parseInt(parts[2]));
+                    filePathEntity.setIndexFile(Integer.parseInt(parts[3]));
+                    filePathEntity.setFileName(fileNameOrigin);
+                    filePathEntity.setFileSize(file.getSize());
+                    filePathEntity.setDateUpload(new Date());
+                    filePathEntity.setAppUserEntity(appUserEntity);
+                    filePathRepository.save(filePathEntity);
+
+                    //TODO call join file
+                    return new ResponseEntity<>(HttpStatus.CREATED);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
+            }
+        }
+
+        String fileName = fileStorageService.storeFile(file, appUserEntity.getUserName(), fileNameUUID.toString());
+        if (fileNameUUID.toString().equals(fileName)) {
+            FileEntity fileEntity = new FileEntity();
+            fileEntity.setFileId(fileNameUUID);
+            fileEntity.setFileName(fileNameOrigin);
+            fileEntity.setFileSize(file.getSize());
+            fileEntity.setDateUpload(new Date());
+            fileEntity.setAppUserEntity(appUserEntity);
+            fileRepository.save(fileEntity);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @DeleteMapping
@@ -109,7 +144,7 @@ public class HomeController {
         List<FilePathEntity> listFile = filePathRepository.findAllByAppUserEntity(appUserEntity);
 
         for (FilePathEntity file : listFile) {
-            fileStorageService.deleteFileTemp(file.getFileName(), userName, file.getKeyJoin());
+            fileStorageService.deleteFileTemp(file.getFileId().toString(), appUserEntity.getUserName(), file.getKeyJoin());
             filePathRepository.delete(file);
         }
         return new ResponseEntity<>(HttpStatus.OK);

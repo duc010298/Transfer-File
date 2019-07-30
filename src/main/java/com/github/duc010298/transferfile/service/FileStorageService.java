@@ -48,7 +48,7 @@ public class FileStorageService {
         try {
             Path directoryKeyPath = this.fileStorageLocation.resolve(userName).resolve(TEMP_FOLDER).resolve(key);
             Files.createDirectories(directoryKeyPath);
-            Path targetLocation = this.fileStorageLocation.resolve(userName).resolve(fileName);
+            Path targetLocation = this.fileStorageLocation.resolve(userName).resolve(TEMP_FOLDER).resolve(key).resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
             return fileName;

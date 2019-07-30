@@ -53,10 +53,10 @@ let setEventClickDelete = (button) => {
             if (data.status === 200) {
                 updateListFile();
             } else {
-                alertify.error('Delete file failed', 3);
+                alertify.error('Delete file failed', 5);
             }
         }).catch(error => {
-            alertify.error('Delete file failed', 3);
+            alertify.error('Delete file failed', 5);
         });
     }
 };
@@ -130,10 +130,10 @@ let updateListFile = () => {
                 tableListFile.appendChild(row);
             }
         } else {
-            alertify.error('Can not load list file', 3);
+            alertify.error('Can not load list file', 5);
         }
     }).catch(error => {
-        alertify.error('Can not load list file', 3);
+        alertify.error('Can not load list file', 5);
     });
 };
 
@@ -208,10 +208,10 @@ let updateListFilePath = () => {
                 tableListFilePath.appendChild(row);
             }
         } else {
-            alertify.error('Can not load list file temp', 3);
+            alertify.error('Can not load list file temp', 5);
         }
     }).catch(error => {
-        alertify.error('Can not load list file temp', 3);
+        alertify.error('Can not load list file temp', 5);
     });
 };
 
@@ -317,9 +317,12 @@ let sendFile = (file, index) => {
                 }
             }
             if (!isError) {
-                alertify.success('Upload successfully', 3);
+                updateListFile();
+                updateListFilePath();
+                alertify.alert("Information" ,"Upload successfully");
+                alertify.success('Upload successfully', 5);
             } else {
-                alertify.error('Upload failed', 3);
+                alertify.error('Upload failed', 5);
             }
         }
     }).catch(error => {
@@ -342,9 +345,12 @@ let sendFile = (file, index) => {
                 }
             }
             if (!isError) {
-                alertify.success('Upload successfully', 3);
+                updateListFile();
+                updateListFilePath();
+                alertify.alert("Information" ,"Upload successfully");
+                alertify.success('Upload successfully', 5);
             } else {
-                alertify.error('Upload failed', 3);
+                alertify.error('Upload failed', 5);
             }
         }
     });
@@ -374,13 +380,15 @@ document.getElementById('deleteAll').onclick = (event) => {
         url: "/"
     }).then(data => {
         if (data.status === 200) {
-            alertify.success('Delete all file successfully', 3);
+            updateListFile();
+            updateListFilePath();
+            alertify.success('Delete all file successfully', 5);
             updateListFile();
         } else {
-            alertify.success('Delete all file failed', 3);
+            alertify.error('Delete all file failed', 5);
         }
     }).catch(error => {
-        alertify.success('Delete all file failed', 3);
+        alertify.error('Delete all file failed', 5);
     });
 };
 
@@ -390,13 +398,14 @@ document.getElementById('deleteAllTemp').onclick = (event) => {
         url: "/temp"
     }).then(data => {
         if (data.status === 200) {
-            alertify.success('Delete all file successfully', 3);
             updateListFile();
+            updateListFilePath();
+            alertify.success('Delete all file successfully', 5);
         } else {
-            alertify.success('Delete all file failed', 3);
+            alertify.error('Delete all file failed', 5);
         }
     }).catch(error => {
-        alertify.success('Delete all file failed', 3);
+        alertify.error('Delete all file failed', 5);
     });
 };
 

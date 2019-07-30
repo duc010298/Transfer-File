@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FileStorageConfig {
 
     private String uploadDir;
+    private String prefix;
 
     public String getUploadDir() {
         return uploadDir;
@@ -13,5 +14,13 @@ public class FileStorageConfig {
 
     public void setUploadDir(String uploadDir) {
         this.uploadDir = uploadDir;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 }

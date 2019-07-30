@@ -78,10 +78,11 @@ public class HomeController {
         String fileNameOrigin = file.getOriginalFilename();
 
         //pattern: [origin file name].[key prefix server]_[key join]_[total]_[index part]
-        String regexFileName = "^.+\\.[a-zA-Z]{5}\\_[a-zA-Z]{5}\\_[0-9]+\\_[0-9]+$";
+        String regexFileName = "^.+\\.[a-zA-Z]{5}_[a-zA-Z]{5}_[0-9]+\\.[0-9]+$";
         if (fileNameOrigin != null && fileNameOrigin.matches(regexFileName)) {
             String[] parts = fileNameOrigin.split("\\.");
-            String content = parts[parts.length - 1];
+            String indexFile = parts[parts.length - 1];
+            String content = parts[parts.length - 2];
             parts = content.split("_");
             if (parts[0].equals(fileStorageConfig.getPrefix())) {
                 String keyJoin = parts[1];
@@ -92,7 +93,7 @@ public class HomeController {
                     filePathEntity.setFileId(fileNameUUID);
                     filePathEntity.setKeyJoin(keyJoin);
                     filePathEntity.setTotal(Integer.parseInt(parts[2]));
-                    filePathEntity.setIndexFile(Integer.parseInt(parts[3]));
+                    filePathEntity.setIndexFile(Integer.parseInt(indexFile));
                     filePathEntity.setFileName(fileNameOrigin);
                     filePathEntity.setFileSize(file.getSize());
                     filePathEntity.setDateUpload(new Date());

@@ -10,5 +10,5 @@ import com.github.duc010298.transferfile.entity.FileEntity;
 
 public interface FileRepository extends JpaRepository<FileEntity, UUID> {
 
-	List<FileEntity> findAllByAppUserEntity(AppUserEntity appUserEntity);
+    List<FileEntity> findAllByAppUserEntity(AppUserEntity appUserEntity);
 }

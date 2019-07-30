@@ -19,56 +19,56 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "file")
 public class FileEntity {
-	private UUID fileId;
-	private String fileName;
-	private Long fileSize;
-	private Date dateUpload;
-	private AppUserEntity appUserEntity;
-	
-	@Id
-    @Column(name = "file_id")
-	public UUID getFileId() {
-		return fileId;
-	}
-	public void setFileId(UUID fileId) {
-		this.fileId = fileId;
-	}
-	
-	@Basic
-    @Column(name = "file_name")
-	public String getFileName() {
-		return fileName;
-	}
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
-	
-	@Basic
-    @Column(name = "file_size")
-	public Long getFileSize() {
-		return fileSize;
-	}
-	public void setFileSize(Long fileSize) {
-		this.fileSize = fileSize;
-	}
-	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "date_upload")
-	public Date getDateUpload() {
-		return dateUpload;
-	}
-	public void setDateUpload(Date dateUpload) {
-		this.dateUpload = dateUpload;
-	}
-	
-	@ManyToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name="user_id")
-	@JsonIgnore
-	public AppUserEntity getAppUserEntity() {
-		return this.appUserEntity;
-	}
+    private UUID fileId;
+    private String fileName;
+    private Long fileSize;
+    private Date dateUpload;
+    private AppUserEntity appUserEntity;
 
-	public void setAppUserEntity(AppUserEntity appUserEntity) {
-		this.appUserEntity = appUserEntity;
-	}
+    @Id
+    @Column(name = "file_id")
+    public UUID getFileId() {
+        return fileId;
+    }
+    public void setFileId(UUID fileId) {
+        this.fileId = fileId;
+    }
+
+    @Basic
+    @Column(name = "file_name")
+    public String getFileName() {
+        return fileName;
+    }
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    @Basic
+    @Column(name = "file_size")
+    public Long getFileSize() {
+        return fileSize;
+    }
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "date_upload")
+    public Date getDateUpload() {
+        return dateUpload;
+    }
+    public void setDateUpload(Date dateUpload) {
+        this.dateUpload = dateUpload;
+    }
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="user_id")
+    @JsonIgnore
+    public AppUserEntity getAppUserEntity() {
+        return this.appUserEntity;
+    }
+
+    public void setAppUserEntity(AppUserEntity appUserEntity) {
+        this.appUserEntity = appUserEntity;
+    }
 }

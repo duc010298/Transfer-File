@@ -32,7 +32,7 @@ public class AppUserEntity {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    
+
     @Basic
     @Column(name = "encrypted_password")
     public String getEncryptedPassword() {

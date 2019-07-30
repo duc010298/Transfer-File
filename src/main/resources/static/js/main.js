@@ -1,41 +1,27 @@
 const listFileDiv = document.getElementById('listFile');
 const tableListFile = document.getElementById('table-list-file');
-
-let notify = (title, message, alert) => {
-    if (alert) {
-        document.querySelector('#notify-modal .modal-header').style.backgroundColor = '#FF323F';
-        document.querySelector('#notify-modal .modal-body').style.backgroundColor = '#FF323F';
-        document.querySelector('#notify-modal .modal-footer').style.backgroundColor = '#FF323F';
-        document.getElementById('notify-modal').style.color = '#fff';
-    } else {
-        document.querySelector('#notify-modal .modal-header').style.backgroundColor = '';
-        document.querySelector('#notify-modal .modal-body').style.backgroundColor = '';
-        document.querySelector('#notify-modal .modal-footer').style.backgroundColor = '';
-        document.getElementById('notify-modal').style.color = '#000';
-    }
-    document.querySelector('#notify-modal .modal-title').innerHTML = title;
-    document.querySelector('#notify-modal .modal-body').innerHTML = message;
-    document.getElementById('notify-modal').classList.add('show');
-    document.getElementById('notify-modal').style.display = 'block';
-    document.getElementById('notify-modal').style.overflowX = 'hidden';
-    document.getElementById('notify-modal').style.overflowY = 'auto';
-    document.getElementById('notify-modal').style.backgroundColor = 'rgb(0,0,0,0.5)';
-    updateListFile();
-}
-
-document.querySelector('#notify-modal .modal-footer button').onclick = (event) => {
-    document.getElementById('notify-modal').classList.remove('show');
-    document.getElementById('notify-modal').style.display = 'none';
-}
+const tableListFilePath = document.getElementById('table-list-file-temp');
 
 let formatDate = (date) => {
-    year = "" + date.getFullYear();
-    month = "" + (date.getMonth() + 1); if (month.length == 1) { month = "0" + month; }
-    day = "" + date.getDate(); if (day.length == 1) { day = "0" + day; }
-    hour = "" + date.getHours(); if (hour.length == 1) { hour = "0" + hour; }
-    minute = "" + date.getMinutes(); if (minute.length == 1) { minute = "0" + minute; }
+    let year = "" + date.getFullYear();
+    let month = "" + (date.getMonth() + 1);
+    if (month.length === 1) {
+        month = "0" + month;
+    }
+    let day = "" + date.getDate();
+    if (day.length === 1) {
+        day = "0" + day;
+    }
+    let hour = "" + date.getHours();
+    if (hour.length === 1) {
+        hour = "0" + hour;
+    }
+    let minute = "" + date.getMinutes();
+    if (minute.length === 1) {
+        minute = "0" + minute;
+    }
     return year + "/" + month + "/" + day + " " + hour + ":" + minute;
-}
+};
 
 let setEventClickDownload = (button) => {
     button.onclick = (event) => {
@@ -49,7 +35,7 @@ let setEventClickDownload = (button) => {
         let urlDownload = '/download-file/' + fileId;
         window.open(urlDownload);
     }
-}
+};
 
 let setEventClickDelete = (button) => {
     button.onclick = (event) => {
@@ -67,13 +53,13 @@ let setEventClickDelete = (button) => {
             if (data.status === 200) {
                 updateListFile();
             } else {
-                notify("Error", "Delete file failed", true);
+                alertify.error('Delete file failed', 3);
             }
         }).catch(error => {
-            notify("Error", "Delete file failed", true);
+            alertify.error('Delete file failed', 3);
         });
     }
-}
+};
 
 let updateListFile = () => {
     axios.request({
@@ -88,16 +74,16 @@ let updateListFile = () => {
                 let fileSize = data.data[i].fileSize;
                 let dateUpload = data.data[i].dateUpload;
 
-                if (fileSize < 1000) {
+                if (fileSize < 1024) {
                     fileSize = fileSize + ' bytes';
-                } else if (fileSize >= 1000 && fileSize < 1000000) {
-                    fileSize = Math.round(fileSize / 1000);
+                } else if (fileSize >= 1024 && fileSize < 1048576) {
+                    fileSize = Math.round(fileSize / 1024);
                     fileSize = fileSize + ' KB';
-                } else if (fileSize >= 1000000 && fileSize < 1000000000) {
-                    fileSize = Math.round(fileSize / 1000000);
+                } else if (fileSize >= 1048576 && fileSize < 1073741824) {
+                    fileSize = Math.round(fileSize / 1048576);
                     fileSize = fileSize + ' MB';
                 } else {
-                    fileSize = Math.round(ileSize / 1000000000);
+                    fileSize = Math.round(ileSize / 1073741824);
                     fileSize = fileSize + ' GB';
                 }
                 dateUpload = new Date(dateUpload);
@@ -144,14 +130,92 @@ let updateListFile = () => {
                 tableListFile.appendChild(row);
             }
         } else {
-            notify('Error', 'Can not load list file', true);
+            alertify.error('Can not load list file', 3);
         }
     }).catch(error => {
-        notify('Error', 'Can not load list file', true);
+        alertify.error('Can not load list file', 3);
     });
-}
+};
 
 updateListFile();
+
+let updateListFilePath = () => {
+    axios.request({
+        method: "get",
+        url: "/list-file-path"
+    }).then(data => {
+        if (data.status === 200) {
+            tableListFilePath.innerHTML = '';
+            for (let i = 0; i < data.data.length; i++) {
+                let fileId = data.data[i].fileId;
+                let fileName = data.data[i].fileName;
+                let fileSize = data.data[i].fileSize;
+                let dateUpload = data.data[i].dateUpload;
+
+                if (fileSize < 1024) {
+                    fileSize = fileSize + ' bytes';
+                } else if (fileSize >= 1024 && fileSize < 1048576) {
+                    fileSize = Math.round(fileSize / 1024);
+                    fileSize = fileSize + ' KB';
+                } else if (fileSize >= 1048576 && fileSize < 1073741824) {
+                    fileSize = Math.round(fileSize / 1048576);
+                    fileSize = fileSize + ' MB';
+                } else {
+                    fileSize = Math.round(ileSize / 1073741824);
+                    fileSize = fileSize + ' GB';
+                }
+                dateUpload = new Date(dateUpload);
+                dateUpload = formatDate(dateUpload);
+
+                let row = document.createElement('tr');
+                let col1 = document.createElement('td');
+                col1.innerHTML = i + 1;
+                row.appendChild(col1);
+                let col2 = document.createElement('td');
+                col2.innerHTML = fileName;
+                row.appendChild(col2);
+                let col3 = document.createElement('td');
+                col3.innerHTML = fileSize;
+                row.appendChild(col3);
+                let col4 = document.createElement('td');
+                col4.innerHTML = dateUpload;
+                row.appendChild(col4);
+                let col5 = document.createElement('td');
+                let buttonDownload = document.createElement('button');
+                buttonDownload.setAttribute('name', 'buttonDownload');
+                buttonDownload.setAttribute('data', fileId);
+                buttonDownload.classList.add('btn');
+                buttonDownload.classList.add('btn-primary');
+                buttonDownload.style.marginRight = '10px';
+                let iconDownload = document.createElement('i');
+                iconDownload.classList.add('fas');
+                iconDownload.classList.add('fa-download');
+                buttonDownload.appendChild(iconDownload);
+                setEventClickDownload(buttonDownload);
+                col5.appendChild(buttonDownload);
+                let buttonDelete = document.createElement('button');
+                setEventClickDelete(buttonDelete);
+                buttonDelete.setAttribute('data', fileId);
+                buttonDelete.classList.add('btn');
+                buttonDelete.classList.add('btn-danger');
+                let iconDelete = document.createElement('i');
+                iconDelete.classList.add('fas');
+                iconDelete.classList.add('fa-trash');
+                buttonDelete.appendChild(iconDelete);
+                col5.appendChild(buttonDelete);
+                row.appendChild(col5);
+
+                tableListFilePath.appendChild(row);
+            }
+        } else {
+            alertify.error('Can not load list file temp', 3);
+        }
+    }).catch(error => {
+        alertify.error('Can not load list file temp', 3);
+    });
+};
+
+updateListFilePath();
 
 let listFile = [];
 document.getElementById('inputGroupFile').onchange = (event) => {
@@ -210,7 +274,7 @@ document.getElementById('inputGroupFile').onchange = (event) => {
 
         listFileDiv.appendChild(container);
     }
-}
+};
 
 let sendFile = (file, index) => {
     let formData = new FormData();
@@ -253,9 +317,9 @@ let sendFile = (file, index) => {
                 }
             }
             if (!isError) {
-                notify('Information', 'Upload successfully', false);
+                alertify.success('Upload successfully', 3);
             } else {
-                notify('Error', 'Upload failed', true);
+                alertify.error('Upload failed', 3);
             }
         }
     }).catch(error => {
@@ -278,13 +342,13 @@ let sendFile = (file, index) => {
                 }
             }
             if (!isError) {
-                notify('Information', 'Upload successfully', false);
+                alertify.success('Upload successfully', 3);
             } else {
-                notify('Error', 'Upload failed', true);
+                alertify.error('Upload failed', 3);
             }
         }
     });
-}
+};
 
 document.getElementById('submit-button').onclick = (event) => {
     if (listFile.length === 0) return;
@@ -293,7 +357,7 @@ document.getElementById('submit-button').onclick = (event) => {
     for (let i = 0; i < listFile.length; i++) {
         sendFile(listFile[i], i);
     }
-}
+};
 
 document.getElementById('reset-button').onclick = (event) => {
     event.target.disabled = true;
@@ -302,7 +366,7 @@ document.getElementById('reset-button').onclick = (event) => {
     listFile = [];
     document.getElementById('labelFileName').innerHTML = 'Choose file';
     listFileDiv.innerHTML = '';
-}
+};
 
 document.getElementById('deleteAll').onclick = (event) => {
     axios.request({
@@ -310,20 +374,35 @@ document.getElementById('deleteAll').onclick = (event) => {
         url: "/"
     }).then(data => {
         if (data.status === 200) {
-            notify("Information", "Delete all file successfully", false);
+            alertify.success('Delete all file successfully', 3);
             updateListFile();
         } else {
-            notify("Error", "Delete all file failed", true);
+            alertify.success('Delete all file failed', 3);
         }
     }).catch(error => {
-        notify("Error", "Delete all file failed", true);
+        alertify.success('Delete all file failed', 3);
     });
-}
+};
+
+document.getElementById('deleteAllTemp').onclick = (event) => {
+    axios.request({
+        method: "delete",
+        url: "/temp"
+    }).then(data => {
+        if (data.status === 200) {
+            alertify.success('Delete all file successfully', 3);
+            updateListFile();
+        } else {
+            alertify.success('Delete all file failed', 3);
+        }
+    }).catch(error => {
+        alertify.success('Delete all file failed', 3);
+    });
+};
 
 document.getElementById('downloadAll').onclick = (event) => {
-    //TODO download as zip
     let listButton = document.querySelectorAll('button[name="buttonDownload"]');
     for (let button of listButton) {
         button.click();
     }
-}
+};

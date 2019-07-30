@@ -8,73 +8,78 @@
     <link rel="shortcut icon" type="image/png" th:href="@{/resources/images/favicon.png}" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css"
-        integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+          integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.4/build/css/alertify.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.11.4/build/css/themes/bootstrap.min.css"/>
     <title>Transfer File</title>
 </head>
 
 <body>
-    <div class="modal fade" id="notify-modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">...</h4>
-                </div>
-                <div class="modal-body">...</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="navbar-collapse collapse">
+        <a class="navbar-brand mr-auto" th:href="@{/}">Transfer File</a>
+        <ul class="navbar-nav">
+            <li><a class="nav-link" th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a class="nav-link" th:href="@{/}"><i class="fas fa-cog"></i> Change password</a></li>
+        </ul>
+    </div>
+</nav>
+<div class="container">
+    <div class="jumbotron">
+        <h1>Upload File</h1>
+        <hr>
+        <div class="input-group">
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="inputGroupFile" multiple> <label
+                    class="custom-file-label" for="inputGroupFile" id="labelFileName">Choose file</label>
             </div>
         </div>
+        <button id="submit-button" class="btn btn-primary float-right" style="margin: 10px 0;">
+            <i class="fas fa-upload"></i> Upload file
+        </button>
+        <button id="reset-button" disabled class="btn btn-danger float-right" style="margin: 10px;">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+        <br> <br>
+        <div id="listFile" style="width: 100%"></div>
+        <hr>
+        <h2 class="float-left">List files:</h2>
+        <button id="deleteAll" class="btn btn-danger float-right"><i class="fas fa-trash"></i> Delete All</button>
+        <button id="downloadAll" class="btn btn-primary float-right" style="margin-right: 10px"><i
+                class="fas fa-download"></i>
+            Download All</button>
+        <table class="table table-bordered table-hover table-light">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Date Upload</th>
+                <th style="width: 130px"></th>
+            </tr>
+            </thead>
+            <tbody id="table-list-file"></tbody>
+        </table>
+        <hr>
+        <h2 class="float-left">List files temp:</h2>
+        <button id="deleteAllTemp" class="btn btn-danger float-right"><i class="fas fa-trash"></i> Delete All</button>
+        <table class="table table-bordered table-hover table-light">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Date Upload</th>
+                <th style="width: 130px"></th>
+            </tr>
+            </thead>
+            <tbody id="table-list-file-temp"></tbody>
+        </table>
     </div>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="navbar-collapse collapse">
-            <a class="navbar-brand mr-auto" th:href="@{/}">Transfer File</a>
-            <ul class="navbar-nav">
-                <li><a class="nav-link" th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                <li><a class="nav-link" th:href="@{/}"><i class="fas fa-cog"></i> Change password</a></li>
-            </ul>
-        </div>
-    </nav>
-    <div class="container">
-        <div class="jumbotron">
-            <h1>Upload File</h1>
-            <hr>
-            <div class="input-group">
-                <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="inputGroupFile" multiple> <label
-                        class="custom-file-label" for="inputGroupFile" id="labelFileName">Choose file</label>
-                </div>
-            </div>
-            <button id="submit-button" class="btn btn-primary float-right" style="margin: 10px 0;">
-                <i class="fas fa-upload"></i> Upload file
-            </button>
-            <button id="reset-button" disabled class="btn btn-danger float-right" style="margin: 10px;">
-                <i class="fas fa-undo"></i> Reset
-            </button>
-            <br> <br>
-            <div id="listFile" style="width: 100%"></div>
-            <hr>
-            <h2 class="float-left">List files:</h2>
-            <button id="deleteAll" class="btn btn-danger float-right"><i class="fas fa-trash"></i> Delete All</button>
-            <button id="downloadAll" class="btn btn-primary float-right" style="margin-right: 10px"><i
-                    class="fas fa-download"></i>
-                Download All</button>
-            <table class="table table-bordered table-hover table-light">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Name</th>
-                        <th>Size</th>
-                        <th>Date Upload</th>
-                        <th style="width: 130px"></th>
-                    </tr>
-                </thead>
-                <tbody id="table-list-file"></tbody>
-            </table>
-        </div>
-    </div>
+</div>
 </body>
+<script src="//cdn.jsdelivr.net/npm/alertifyjs@1.11.4/build/alertify.min.js"></script>
 <script th:src="@{/resources/js/main.js}"></script>
 
 </html>

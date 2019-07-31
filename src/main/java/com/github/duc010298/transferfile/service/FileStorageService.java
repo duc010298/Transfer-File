@@ -4,12 +4,14 @@ import com.github.duc010298.transferfile.configuration.FileStorageConfig;
 import com.github.duc010298.transferfile.entity.AppUserEntity;
 import com.github.duc010298.transferfile.entity.FileEntity;
 import com.github.duc010298.transferfile.entity.FilePathEntity;
+import com.github.duc010298.transferfile.entity.WebSocketPayload;
 import com.github.duc010298.transferfile.repository.AppUserRepository;
 import com.github.duc010298.transferfile.repository.FilePathRepository;
 import com.github.duc010298.transferfile.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,13 +34,16 @@ public class FileStorageService {
     private FileRepository fileRepository;
     private FilePathRepository filePathRepository;
     private AppUserRepository appUserRepository;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
     public FileStorageService(FileStorageConfig fileStorageConfig, FileRepository fileRepository,
-                              FilePathRepository filePathRepository, AppUserRepository appUserRepository) {
+                              FilePathRepository filePathRepository, AppUserRepository appUserRepository,
+                              SimpMessagingTemplate simpMessagingTemplate) {
         this.fileRepository = fileRepository;
         this.filePathRepository = filePathRepository;
         this.appUserRepository = appUserRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
 
         String storageConfig = fileStorageConfig.getUploadDir();
         if (storageConfig == null) {
@@ -54,8 +59,6 @@ public class FileStorageService {
 
     @Async
     public void joinFile(String fileName, String keyJoin, String userName) {
-        UUID fileNameUUID = UUID.randomUUID();
-
         String[] parts = fileName.split("\\.");
         StringBuilder temp = new StringBuilder();
         for (int i = 0; i < parts.length - 2; i++) {
@@ -65,6 +68,17 @@ public class FileStorageService {
             }
         }
         String originFileName = temp.toString();
+
+        AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
+
+        WebSocketPayload payload = new WebSocketPayload();
+        payload.setCommand("BEGIN_JOIN");
+        payload.setContent(originFileName);
+        simpMessagingTemplate.convertAndSendToUser(appUserEntity.getUserName(), "/topic/command", payload);
+        simpMessagingTemplate.convertAndSend("/topic/command", payload);
+
+        UUID fileNameUUID = UUID.randomUUID();
+
         Path out = this.fileStorageLocation.resolve(userName).resolve(fileNameUUID.toString());
 
         List<FilePathEntity> listFilePath = filePathRepository.findAllByKeyJoinOrderByFileNameAsc(keyJoin);
@@ -91,7 +105,6 @@ public class FileStorageService {
             return;
         }
 
-        AppUserEntity appUserEntity = appUserRepository.findByUserName(userName);
         FileEntity fileEntity = new FileEntity();
         fileEntity.setFileId(fileNameUUID);
         fileEntity.setFileName(originFileName);
@@ -105,7 +118,11 @@ public class FileStorageService {
             deleteFileTemp(filePathEntity.getFileId().toString(), appUserEntity.getUserName(), keyJoin);
         }
 
-        //TODO Call websocket here
+        payload = new WebSocketPayload();
+        payload.setCommand("NEW_FILE");
+        payload.setContent(originFileName);
+        simpMessagingTemplate.convertAndSendToUser(appUserEntity.getUserName(), "/topic/command", payload);
+        simpMessagingTemplate.convertAndSend("/topic/command", payload);
     }
 
     public String storeFile(MultipartFile file, String userName, String fileName) {

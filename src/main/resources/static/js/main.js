@@ -319,7 +319,7 @@ let sendFile = (file, index) => {
             if (!isError) {
                 updateListFile();
                 updateListFilePath();
-                alertify.alert("Information" ,"Upload successfully");
+                alertify.alert("Information", "Upload successfully");
                 alertify.success('Upload successfully', 5);
             } else {
                 alertify.error('Upload failed', 5);
@@ -347,7 +347,7 @@ let sendFile = (file, index) => {
             if (!isError) {
                 updateListFile();
                 updateListFilePath();
-                alertify.alert("Information" ,"Upload successfully");
+                alertify.alert("Information", "Upload successfully");
                 alertify.success('Upload successfully', 5);
             } else {
                 alertify.error('Upload failed', 5);
@@ -415,3 +415,34 @@ document.getElementById('downloadAll').onclick = (event) => {
         button.click();
     }
 };
+
+let stompClient;
+
+//Connect Websocket
+let onConnected = () => {
+    stompClient.subscribe('/topic/command', onMessageReceived);
+};
+
+
+let onError = (error) => {
+    console.error(error);
+};
+
+
+let onMessageReceived = (payload) => {
+    let message = JSON.parse(payload.body);
+    if (message.command === 'BEGIN_JOIN') {
+        alertify.success('File "' + message.content + '" have been joining', 7);
+    }
+    if (message.command === 'NEW_FILE') {
+        alertify.success('File "' + message.content + '" have been joined successfully', 7);
+    }
+};
+
+let connectWebSocket = () => {
+    let socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, onConnected, onError);
+};
+
+connectWebSocket();

@@ -83,7 +83,7 @@ let updateListFile = () => {
                     fileSize = Math.round(fileSize / 1048576);
                     fileSize = fileSize + ' MB';
                 } else {
-                    fileSize = Math.round(ileSize / 1073741824);
+                    fileSize = Math.round(fileSize / 1073741824);
                     fileSize = fileSize + ' GB';
                 }
                 dateUpload = new Date(dateUpload);
@@ -161,7 +161,7 @@ let updateListFilePath = () => {
                     fileSize = Math.round(fileSize / 1048576);
                     fileSize = fileSize + ' MB';
                 } else {
-                    fileSize = Math.round(ileSize / 1073741824);
+                    fileSize = Math.round(fileSize / 1073741824);
                     fileSize = fileSize + ' GB';
                 }
                 dateUpload = new Date(dateUpload);
@@ -436,6 +436,8 @@ let onMessageReceived = (payload) => {
     }
     if (message.command === 'NEW_FILE') {
         alertify.success('File "' + message.content + '" have been joined successfully', 7);
+        updateListFile();
+        updateListFilePath();
     }
 };
 

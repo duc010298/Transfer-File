@@ -91,7 +91,7 @@ public class FileStorageService {
                 Path dir = this.fileStorageLocation.resolve(userName).resolve(TEMP_FOLDER).resolve(keyJoin).resolve(filePathEntity.getFileId().toString());
                 try (FileInputStream input = new FileInputStream(dir.toFile());
                      FileChannel inChannel = input.getChannel()) {
-                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    ByteBuffer buffer = ByteBuffer.allocate(20 * 1024);
                     while (inChannel.read(buffer) > 0) {
                         buffer.flip();
                         outChannel.write(buffer);
